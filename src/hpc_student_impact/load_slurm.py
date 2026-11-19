@@ -85,10 +85,21 @@ def iter_slurm_jobs(path, start, end, chunksize=100_000):
     if not path.is_file():
         raise FileNotFoundError(path)
 
+
     for chunk in pd.read_csv(
         path,
         usecols=lambda col: col in SLURM_COLUMNS,
-        dtype={"JobID": "string", "User": "string"},
+        dtype={
+            "JobID": "string",
+            "JobIDRaw": "string",
+            "User": "string",
+            "Partition": "string",
+            "State": "string",
+            "AllocTRES": "string",
+            "Submit": "string",
+            "Start": "string",
+            "End": "string",
+        },
         chunksize=chunksize,
     ):
         filtered = filter_slurm_chunk(chunk, start, end)
