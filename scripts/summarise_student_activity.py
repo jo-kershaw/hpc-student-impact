@@ -30,6 +30,7 @@ START = "2025-08-01"
 SPLIT = "2025-10-01"
 END = "2026-08-01"
 
+LEGACY_CATEGORY = "Unclassified (legacy)"
 
 def normalise_usernames(series):
     """Standardise usernames for matching."""
@@ -105,10 +106,106 @@ def main():
     categories = load_user_categories()
     active_users = load_active_users()
 
+    # Save unmatched usernames for private manual review.
+    unmatched = sorted(active_users - set(categories))
+
+    output = PRIVATE / "unmatched_accounts_2025_2026.csv"
+
+    pd.DataFrame({
+        "username": unmatched
+    }).to_csv(output, index=False)
+
+    output.chmod(0o600)
+
+    print(f"\nSaved {len(unmatched)} unmatched accounts to:")
+    print(output)
+
+    # Apply manually verified classifications from a private file.
+    overrides_path = PRIVATE / "account_classification_overrides.csv"
+    overrides = pd.read_csv(overrides_path, dtype="string")
+
+    override_categories = dict(zip(
+        normalise_usernames(overrides["username"]),
+        overrides["category"].str.strip(),
+    ))
+
     counts = Counter(
-        categories.get(username, "Unmatched")
+        override_categories.get(
+            username,
+            categories.get(username, LEGACY_CATEGORY)
+        )
         for username in active_users
     )
+
+    # Read full names from ServiceNow.
+    # Prefer the newer snapshot, retaining earlier names
+    # when the newer record has no name.
+    full_names = {}
+
+    for path in [OLD_USERS, NEW_USERS]:
+        people = pd.read_csv(
+            path,
+            usecols=["u_ad_sam_account", "name"],
+            dtype="string",
+        )
+
+        usernames = normalise_usernames(
+            people["u_ad_sam_account"]
+        )
+
+        for username, name in zip(usernames, people["name"]):
+            if (
+                pd.notna(username)
+                and username
+                and pd.notna(name)
+                and name.strip()
+            ):
+                full_names[username] = name.strip()
+
+    # One record per active Slurm account.
+    records = []
+
+    for username in sorted(active_users):
+        category = override_categories.get(
+            username,
+            categories.get(
+                username, LEGACY_CATEGORY
+            ),
+        )
+
+        records.append({
+            "username": username,
+            "name": full_names.get(username, ""),
+            "category": category,
+        })
+
+    accounts = pd.DataFrame(records)
+
+    # Save complete account-level data privately.
+    output = PRIVATE / "all_active_accounts_2025_2026.csv"
+    accounts.to_csv(output, index=False)
+    output.chmod(0o600)
+
+    # Save separate lists for module matching and review.
+    separate_lists = {
+        "UG": "active_UG_2025_2026.csv",
+        "PGT": "active_PGT_2025_2026.csv",
+        "PGR": "active_PGR_2025_2026.csv",
+        LEGACY_CATEGORY: "active_legacy_2025_2026.csv",
+    }
+
+    print("\nPrivate account lists:")
+    print(f"  All active accounts: {len(accounts):,}")
+
+    for category, filename in separate_lists.items():
+        subset = accounts.loc[accounts["category"] == category]
+
+        output = PRIVATE / filename
+        subset.to_csv(output, index=False)
+        output.chmod(0o600)
+
+        print(f"  {filename}: {len(subset):,} accounts")
+
 
     print(f"\nAire: {START} to {END} (end exclusive)")
     print(f"Distinct active users: {len(active_users):,}")
@@ -117,7 +214,8 @@ def main():
     print("\nActive users by category:")
     for category in [
         "UG", "PGT", "PGR", "Staff", "Other",
-        "Unknown", "Unmatched",
+        "Staff testing", "Infrastructure/vendor",
+        LEGACY_CATEGORY, "Unknown",
     ]:
         print(f"  {category:<12} {counts[category]:>6,}")
 
