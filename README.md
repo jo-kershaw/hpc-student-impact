@@ -1,17 +1,27 @@
 # HPC Student Impact
 
-Analysis of student engagement with Research IT HPC services
-at the University of Leeds.
+Python tools for analysing student use of Slurm HPC systems, developed for University of Leeds Research Computing.
 
-## Scope
+The analysis covers active accounts, student categories (UG, PGT, PGR), and allocated CPU/GPU hours by month and partition. Results can be exported as CSV, Markdown and editable PowerPoint tables.
 
-- HPC systems: Aire and Calder
-- Initial period: August 2025 to July 2026
-- Student categories: UG, PGT and PGR
-- Metrics: registered users, active users, CPU-hours and GPU-hours
+## Setup
 
-## Reproducibility and data protection
+Requires Python 3.12+.
 
-The repository contains analysis code and synthetic tests only.
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-Reporting dates and data paths will be configurable.
+Run tests:
+
+```bash
+PYTHONPATH=src python -m pytest -q
+```
+
+## Data
+
+The repository contains code and synthetic tests only. Real Slurm and ServiceNow data are held separately.
+
+The scripts currently use local paths and dates for the initial Aire analysis (August 2025–July 2026)

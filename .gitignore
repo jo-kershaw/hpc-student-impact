@@ -40,3 +40,8 @@ __pycache__/
 
 # Allow tracked Python dependencies
 !requirements.txt
+
+# Additional generated files and archives
+*.pptx
+*.zip
+*.gz
