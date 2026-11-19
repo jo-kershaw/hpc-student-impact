@@ -19,11 +19,13 @@ HOME = Path.home()
 DATA = HOME / "code/hpc-analysis-notebook/data"
 PRIVATE = HOME / "hpc-student-impact-private/aire"
 
+ACCOUNT_LISTS = PRIVATE / "account_lists"
+
 OLD_USERS = DATA / "users_dep_fac.csv"
 NEW_USERS = DATA / "users_dep_fac_2026.csv"
 
 OLD_JOBS = DATA / "df_full_year_test.csv"
-NEW_JOBS = PRIVATE / "df_all_2025_2026.csv.gz"
+NEW_JOBS = ACCOUNT_LISTS / "df_all_2025_2026.csv.gz"
 
 # Reporting period (end exclusive)
 START = "2025-08-01"
@@ -109,7 +111,7 @@ def main():
     # Save unmatched usernames for private manual review.
     unmatched = sorted(active_users - set(categories))
 
-    output = PRIVATE / "unmatched_accounts_2025_2026.csv"
+    output = ACCOUNT_LISTS / "unmatched_accounts_2025_2026.csv"
 
     pd.DataFrame({
         "username": unmatched
@@ -182,7 +184,7 @@ def main():
     accounts = pd.DataFrame(records)
 
     # Save complete account-level data privately.
-    output = PRIVATE / "all_active_accounts_2025_2026.csv"
+    output = ACCOUNT_LISTS / "all_active_accounts_2025_2026.csv"
     accounts.to_csv(output, index=False)
     output.chmod(0o600)
 
@@ -200,7 +202,7 @@ def main():
     for category, filename in separate_lists.items():
         subset = accounts.loc[accounts["category"] == category]
 
-        output = PRIVATE / filename
+        output = ACCOUNT_LISTS / filename
         subset.to_csv(output, index=False)
         output.chmod(0o600)
 
