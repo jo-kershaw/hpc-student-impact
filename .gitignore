@@ -37,3 +37,6 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.egg-info/
+
+# Allow tracked Python dependencies
+!requirements.txt
