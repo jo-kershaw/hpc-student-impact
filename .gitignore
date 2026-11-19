@@ -1,0 +1,39 @@
+# Private data and outputs
+data/
+outputs/
+private/
+local/
+reports/
+
+# Raw data files (including Slurm exports)
+*.csv
+*.tsv
+*.parquet
+*.txt
+*.csv.gz
+*.jsonl
+*.xlsx
+*.sqlite
+*.db
+
+# Local configuration and credentials
+.env
+.env.*
+config.local.toml
+*.key
+
+# Generated figures and documents
+*.png
+*.pdf
+*.svg
+
+# Jupyter
+*.ipynb
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+*.egg-info/
